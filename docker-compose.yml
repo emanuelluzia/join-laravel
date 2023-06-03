@@ -1,0 +1,51 @@
+version: "3.7"
+services:
+
+  app_join:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: app_join
+    container_name: app_join
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./application:/var/www/
+    networks:
+      - network_join
+
+  db_join:
+    image: mysql:5.7
+    container_name: db_join
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./mysqldata:/var/lib/mysql
+    networks:
+      - network_join
+
+  nginx_join:
+    image: nginx:1.19-alpine
+    container_name: hyper-nginx_join
+    restart: unless-stopped
+    ports:
+      - "8989:80"
+    volumes:
+      - ./application:/var/www
+      - ./docker/nginx/:/etc/nginx/conf.d/
+    networks:
+      - network_join
+
+networks:
+  network_join:
+    driver: bridge
